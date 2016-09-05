@@ -88,139 +88,55 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                    <p>I will create a storm topology to read data via tweets "twitter API" for java. This topology will look at the content of tweets to found the key words related to the disciplines of current Olympic Games "Rio 2016".
-						In this example I worked with the HDP (Hortonworks Data Platform) 2.4 Sandbox. </p>
+                    <p>Here some major points to consider when choosing the right tool:</p>
        
-                   <h2 class="section-heading"> Step 1: Start Storm Service by Ambari</h2>
+                   <h2 class="section-heading">Latency: </h2>
 
-				   <p>Go to ambari page and start Storm Service in the cluster.</p>
-					
-				    <a href="#">
-                        <img class="img-responsive" src="img/ambari_storm.jpg" alt="">
-                    </a>
-					
-					<hr>
-					 <h2 class="section-heading">Step 2: Twitter application</h2>
-					
-					<p>The Twitter API use OAuth broadcast to authorize requests. To use OAuth, the first step is to create a new application on the Twitter Developer site. To create the ID and the secrets of a Twitter application:</p>
+				   <p>Is the performance of the streaming application paramount? Storm can give sub-second 
+				   latency much more easily and with less restrictions than Spark Streaming.</p>
 
-					 <div class="container">
-                            <li>	I connect to Twitter Applications by sign into my Twitter account.</li>
-                            <li>	Click Create New App.</li>
-                            <li>	Enter a Name, Description and Website. The name of the Twitter application must be unique. Website field is not actually used. It is not necessary that it be a valid URL.</li>
-                            <li>	Select the check box Yes, I agree, and click Create your Twitter application. </li>
-                            <li>	Click the Permissions tab. The default permission is Read only. These steps are sufficient for this exercise.</li>
-                            <li>	Click the Access Keys and Tokens tab.</li>
-                            <li>	Click Create my access token.</li>
-                            <li>	Click OAuth Test in the upper right corner of the page.</li>
-							<li>    Fill in the values of key consumer, Secret Question of the client, access and secret question of the access token Token.</li>
-					</div>
+		<hr>
+		 <h2 class="section-heading">Development Cost: </h2>
 					
-					<hr>
-					 <h2 class="section-heading"></h2>
-					
-					<a href="#">
-                        <img class="img-responsive" src="img/twiit-bg.jpg" alt="">
-                    </a>
-				    <hr>
-				   <h2 class="section-heading">Step 3: Topology Creation</h2>
-					 
-                    <p>I decided to create a simple topology. This topology is going to read data via tweets "twitter API" for java and in a second time it will found in the content of tweets the key words related to the disciplines of current Olympic Games "Rio 2016".
-						Once treatment has recovered the searched keywords (disciplines in the Olympics) it will count the number of occurrences for each word to generate a ranking of the most popular sports
-						I have used in my topology one Spout and 4 Bolts. Here is a simplified diagram of the topology :</p>
-					
-					<h2 class="section-heading"></h2>
-					<hr>
-						<a href="#">
-                        <img class="img-responsive" src="img/topology.jpg" alt="">
-                    </a>
-						
-					<hr>	
-						
-                    <blockquote> <li>Spout: "Twitter Spout" Reads Twitter's sample feed using the twitter4j library.</li> <br>
+				<p>Is it desired to have similar code bases for batch processing and stream processing? 
+				In our case I could say yes!
+				With Spark, batching and streaming are very similar. 
+				</p>
 
-							<li>Bolt:    "WordSplitterBolt» Receives tweets and emits its words over a certain length.</li><br>
+			
+		<hr>
+		<h2 class="section-heading">Message Delivery Guarantees: </h2>
+		 
+                    <p>Is there high importance on processing every single record, or is some nominal amount of data loss 
+                    acceptable? In our case I want to say it’s important to processes every record. Disregarding everything 
+                    else, Spark trivially yields perfect, exactly once message delivery. Storm can provide all three delivery 
+                    semantics, but getting perfect exactly once message delivery requires more effort to properly achieve.
+                    </p>
+			
+		<hr>			
+		<h2 class="section-heading">Process Fault Tolerance: </h2>
+			<p>Is high-availability of primary concern? Both systems actually handle fault-tolerance 
+			of this kind really well and in relatively similar ways. 
+                    </p>
+			
+		
+		<p> Production Storm clusters will run Storm processes under supervision; if a process fails, 
+		the supervisor process will restart it automatically. State management is handled through ZooKeeper. 
+		Processes restarting will reread the state from ZooKeeper on an attempt to rejoin the cluster.
+                 </p>
+			
+		<p> 	Spark handles restarting workers via the resource manager: YARN or its standalone manager. 
+		Spark’s standalone resource manager handles master node failure with standby-masters and ZooKeeper. 
+		</p>
+		<hr>
+		<h2 class="section-heading">Conclusion</h2>
+		<p> 
+			Both Apache Spark Streaming and Apache Storm are great solutions that solve the streaming ingestion 
+			and transformation problem. Either system can be a great choice for part of an analytics stack. 
+			Choosing the right one is simply a matter of answering the above questions. 
+		</p>		
 
-							<li>Bolt:    "FilterWords Bolt" Bolt filter a predefined set of words about the disciplines of Olympic Games Rio 2016.</li><br>
-
-							<li>Bolt:    " OlympicWordsCounterBolt" Keeps stats on word count, calculates and logs top words about the Olympics disciplines every X second to stdout and top list every Y seconds.</li><br>
-
-							<li>Bolt:    "HdfsBoltWriter" Write the ranking of disciplines in Hdfs: /path/in/hdfs</li>
-					</blockquote>
-
-                    <p>Here is an excerpt of the Java code.</p>
-
-					<h6 class="section-heading">Topology.java</h6>
-				
-						<a href="#">
-                        <img class="img-responsive" src="img/topology_java.jpg" alt="">
-                    </a>
-						
-						
-					<h6 class="section-heading">TwitterSpout.java</h6>
-						<a href="#">
-                        <img class="img-responsive" src="img/twitter_spout_java.jpg" alt="">
-                    </a>
-						<h6 class="section-heading">FilterWordsBolt.java</h6>
-					
-					
-						<a href="#">
-                        <img class="img-responsive" src="img/filter_java.jpg" alt="">
-                    </a>
-						
-					
-					<h6 class="section-heading">WordSplitterBolt.java</h6>
-					
-					
-						<a href="#">
-                        <img class="img-responsive" src="img/spliter_java.jpg" alt="">
-                    </a>
-						
-				
-					
-					<h6 class="section-heading">WordCounterBolt.java</h6>
-				
-						<a href="#">
-                        <img class="img-responsive" src="img/word_count_java.jpg" alt="">
-                    </a>
-						
-					<hr>	
-					
-					
-					
-                    <h2 class="section-heading">Step 3: Launch the topology with storm in the cluster.</h2>
-
-                    <p>I used the command “storm jar storm-twitter-olympics-ranking-0.1-shaded.jar com.moisestrelles.storm.Topology” to launch my topology.</p>
-
-                    <a href="#">
-                        <img class="img-responsive" src="img/launch_topo.jpg" alt="">
-                    </a>
-					
-                    <span class="caption text-muted">After generating a jar file from your java sources, copy the file in the local file system in the cluster and launch this with the storm command.</span>
-
-                    <p>Tweets are comming:</p>
-
-					<a href="#">
-                        <img class="img-responsive" src="img/twitts_come.jpg" alt="">
-                    </a>
-						<hr>
-					 <h2 class="section-heading">Step 4: Output verification</h2>
-					
-                    <p>I verified the output result in the HDFS folder:</p>
-
-					<a href="#">
-                        <img class="img-responsive" src="img/output_list.jpg" alt="">
-                    </a>
-						<hr>
-
-                    <p>Let’s see the output final files, this files contains the liste of disciplines and the number of times this disciplines were mentioned in the twitts:</p>
-
-					<a href="#">
-                        <img class="img-responsive" src="img/final_output.jpg" alt="">
-                    </a>
-						<hr>
-
-					</div>
+		</div>
             </div>
         </div>
     </article>
